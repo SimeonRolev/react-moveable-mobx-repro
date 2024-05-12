@@ -1,64 +1,62 @@
-import React from "react";
+import React, { useRef, useState } from "react";
 import Moveable from "react-moveable";
-import { observer } from 'mobx-react';
-import { makeAutoObservable } from 'mobx';
 
-class Box {
-    x = 0;
-    y = 0;
-    width = 500;
-    height = 400;
-    rotation = 0;
+function useBox () {
+    const [x, setX] = useState(0);
+    const [y, setY] = useState(0);
+    const [width, setWidth] = useState(500);
+    const [height, setHeight] = useState(400);
+    const [rotation, setRotation] = useState(0);
 
-    constructor() {
-        makeAutoObservable(this);
+    const onDrag = e => {
+        setX(x + e.delta[0])
+        setY(y + e.delta[1])
     }
 
-    get cssTransform() {
-        return `translate(${this.x}px, ${this.y}px) rotate(${this.rotation}deg)`;
+    const onResize = ({ width, height, drag }) => {
+        setWidth(width);
+        setHeight(height)
+        drag && onDrag(drag);
     }
 
-    drag(e) {
-        this.x += e.delta[0];
-        this.y += e.delta[1];
+    const onRotate = ({ rotation }) => {
+        setRotation(rotation)
     }
 
-    resize({ width, height, drag }) {
-        this.width = width;
-        this.height = height;
-        drag && this.drag(drag);
-    }
-
-    rotate({ rotation }) {
-        this.rotation = rotation;
+    return {
+        onDrag,
+        onResize,
+        onRotate,
+        style: {
+            backgroundColor: 'pink',
+            width: width + 'px',
+            height: height + 'px',
+            transform: `translate(${x}px, ${y}px) rotate(${rotation}deg)`
+        }
     }
 }
 
-const box = new Box();
+const App = () => {
+    const targetRef = useRef();
+    const { style, onDrag, onResize, onRotate } = useBox();
 
-const App = observer(() => {
     return (
         <div className="root">
             <div
-                className='target'
-                style={{
-                    backgroundColor: 'pink',
-                    width: box.width,
-                    height: box.height,
-                    transform: box.cssTransform
-                }}
+                ref={targetRef}
+                style={style}
             />
             <Moveable
-                target={'.target'}
+                target={targetRef}
                 draggable
                 resizable
                 rotatable
-                onDrag={e => box.drag(e)}
-                onResize={e => box.resize(e)}
-                onRotate={e => box.rotate(e)}
+                onDrag={onDrag}
+                onResize={onResize}
+                onRotate={onRotate}
             />
         </div>
     );
-})
+}
 
 export default App;
