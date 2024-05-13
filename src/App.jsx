@@ -1,12 +1,19 @@
 import React, { useRef, useState } from "react";
+import { flushSync } from "react-dom";
 import Moveable from "react-moveable";
 
-function useBox () {
-    const [x, setX] = useState(0);
-    const [y, setY] = useState(0);
-    const [width, setWidth] = useState(500);
-    const [height, setHeight] = useState(400);
-    const [rotation, setRotation] = useState(0);
+function useFlushState(initialValue) {
+    const [value, _setValue] = useState(initialValue);
+    const setValue = v => flushSync(() => _setValue(v))
+    return [value, setValue];
+}
+
+function useBox() {
+    const [x, setX] = useFlushState(0);
+    const [y, setY] = useFlushState(0);
+    const [width, setWidth] = useFlushState(500);
+    const [height, setHeight] = useFlushState(400);
+    const [rotation, setRotation] = useFlushState(0);
 
     const onDrag = e => {
         setX(x + e.delta[0])
